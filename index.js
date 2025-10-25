@@ -6,7 +6,17 @@ const inventarioRoutes = require('./routes/inventario.routes');
 const { auth, isAdmin } = require('./middleware/auth');
 
 const app = express();
-app.use(cors());
+
+// ✅ Configuración CORS para Render y Firebase
+app.use(cors({
+  origin: [
+    "https://growsync-vivero.web.app",  // tu dominio del frontend
+    "http://localhost:3000"             // para pruebas locales
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+
 app.use(express.json());
 
 // 🔹 Conexión a la base de datos
@@ -33,20 +43,20 @@ app.get('/api/hello', (req, res) => {
   res.json({ message: 'Servidor funcionando correctamente con base growsync' });
 });
 
-// 🔹 Registrar rutas de autenticación
+// 🔹 Rutas de autenticación
 app.use('/api/auth', (req, res, next) => {
-  req.db = connection; // pasamos la conexión a las rutas
+  req.db = connection;
   next();
 }, authRoutes);
 
-// 🔹 Registrar rutas de inventario (solo admin)
+// 🔹 Rutas de inventario (solo admin)
 app.use('/api/inventario', (req, res, next) => {
   req.db = connection;
   next();
 }, auth, isAdmin, inventarioRoutes);
 
-// 🔹 Iniciar servidor
-const PORT = 3001;
+// 🔹 Puerto dinámico (necesario para Render)
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
 });
